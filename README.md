@@ -7,7 +7,7 @@ WP-Changer uses `feh` as its backend so you will need to install it or it will n
 ## Usage
 First you will need to create a folder to store the sqlite file which indexes the wallpapers:
 ```bash
-mkdir $HOME/.config/wallpaper-go/
+$ mkdir -p $HOME/.config/wallpaper-go/
 ```
 First usage will create a sqlite file to store the order of the wallpapers, so it will take
 some time indexing, next usages will go instantly.
