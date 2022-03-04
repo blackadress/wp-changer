@@ -11,6 +11,7 @@ type Params struct {
 	Random   bool
 	Curr_wal int
 	Last_wal int
+	Previous bool
 }
 
 func CreateParamTable(db *sql.DB) {

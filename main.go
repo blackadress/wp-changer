@@ -56,15 +56,16 @@ func main() {
 	}
 
 	initWals(db, files)
-	p := params.Params{Last_wal: len(files)}
+	p := params.Params{Last_wal: len(files), Previous: prev}
 	p = initParams(db, p)
-	// updateWallpapersFolder(db, files)
 	// if prev is set, then change wallpaper to previous one
 	if prev {
-		p.Curr_wal -= 2
+		p.Curr_wal -= 1
 		setWallpaper(db, p)
 		return
 	}
+
+	p.Curr_wal += 1
 	setWallpaper(db, p)
 
 }
@@ -74,6 +75,12 @@ func setWallpaper(db *sql.DB, p params.Params) {
 	if p.Curr_wal-1 == p.Last_wal {
 		p.Curr_wal = 1
 	}
+
+	// si es el primer wallpaper y se da la opcion de prev, set el ultimo wallpaper
+	if p.Curr_wal+1 == 1 && p.Previous {
+		p.Curr_wal = p.Last_wal
+	}
+
 	// get current wallpaper by id
 	w := wals.GetWallById(db, p.Curr_wal)
 
@@ -87,12 +94,10 @@ func setWallpaper(db *sql.DB, p params.Params) {
 		// si hay error cambiar al siguiente wallpaper
 		// TODO agregar a una tabla el archivo que da error
 		log.Printf("setWallpaper: error poniendo el wallpaper %d, error: %s out: %s\n", p.Curr_wal, err, out)
-		// TODO tambien tomar en cuenta para cuando haya opcion 'prev'
 		p.Curr_wal += 1
 		setWallpaper(db, p)
 	}
 
-	p.Curr_wal += 1
 	params.UpdateParam(db, p)
 }
 
