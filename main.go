@@ -58,19 +58,19 @@ func main() {
 	initWals(db, files)
 	p := params.Params{Last_wal: len(files), Previous: prev}
 	p = initParams(db, p)
-	// if prev is set, then change wallpaper to previous one
-	if prev {
-		p.Curr_wal -= 1
-		setWallpaper(db, p)
-		return
-	}
 
-	p.Curr_wal += 1
 	setWallpaper(db, p)
 
 }
 
 func setWallpaper(db *sql.DB, p params.Params) {
+	// if prev is set, then change wallpaper to previous one
+	if p.Previous {
+		p.Curr_wal -= 1
+	} else {
+		p.Curr_wal += 1
+	}
+
 	// si se llego al final del index, entonces dar la vuelta desde el inicio
 	if p.Curr_wal-1 == p.Last_wal {
 		p.Curr_wal = 1
@@ -91,8 +91,8 @@ func setWallpaper(db *sql.DB, p params.Params) {
 	).Output()
 
 	if err != nil {
-		// si hay error cambiar al siguiente wallpaper
 		// TODO agregar a una tabla el archivo que da error
+		// si hay error cambiar al siguiente wallpaper
 		log.Printf("setWallpaper: error poniendo el wallpaper %d, error: %s out: %s\n", p.Curr_wal, err, out)
 		p.Curr_wal += 1
 		setWallpaper(db, p)
