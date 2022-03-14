@@ -9,7 +9,9 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"time"
 
+	"wallchanger/pkg/error_files"
 	"wallchanger/pkg/params"
 	"wallchanger/pkg/wals"
 
@@ -56,6 +58,7 @@ func main() {
 	}
 
 	initWals(db, files)
+	initErrorFiles(db)
 	p := params.Params{Last_wal: len(files), Previous: prev}
 	p = initParams(db, p)
 
@@ -91,9 +94,15 @@ func setWallpaper(db *sql.DB, p params.Params) {
 	).Output()
 
 	if err != nil {
-		// TODO agregar a una tabla el archivo que da error
 		// si hay error cambiar al siguiente wallpaper
 		log.Printf("setWallpaper: error poniendo el wallpaper %d, error: %s out: %s\n", p.Curr_wal, err, out)
+
+		// insertar el archivo que dio error a la tabla de errores
+		now := time.Now().Format(time.RFC1123Z)
+		file_name := wals.GetWallById(db, p.Curr_wal)
+		e := error_files.ErrorFiles{File: file_name, Fecha: now}
+		error_files.InsertErrorFile(db, e)
+
 		p.Curr_wal += 1
 		setWallpaper(db, p)
 	}
@@ -117,7 +126,7 @@ func initWals(db *sql.DB, files []string) {
 func updateWallpapersFolder(db *sql.DB, files []string) {
 	err := wals.DeleteAllWals(db)
 	if err != nil {
-		fmt.Println("Error eliminando la BD de wallpapers: ", err)
+		fmt.Println("Error eliminando la tabla de wallpapers: ", err)
 	}
 
 	for _, v := range files {
@@ -142,6 +151,10 @@ func initParams(db *sql.DB, p params.Params) params.Params {
 
 	p = params.InsertParam(db, p)
 	return p
+}
+
+func initErrorFiles(db *sql.DB) {
+	error_files.CreateErrorFilesTable(db)
 }
 
 func create_database(database_name string) {

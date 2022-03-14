@@ -44,7 +44,7 @@ func GetWalls(db *sql.DB) []string {
 	var results []string
 	wals, err := db.Query(query)
 	if err != nil {
-		log.Println("No se pudo obtener registros de wals ", err)
+		log.Println("No se pudo obtener registros de wals: ", err)
 	}
 	defer wals.Close()
 

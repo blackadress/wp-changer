@@ -1,2 +1,4 @@
 *.db
 example
+pkg
+*.sql
