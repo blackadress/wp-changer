@@ -9,6 +9,8 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"wallchanger/pkg/error_files"
@@ -118,8 +120,18 @@ func initWals(db *sql.DB, files []string) {
 
 	fmt.Println("Insertando los wallpapers a la BD...")
 
+	extensiones_validas := map[string]bool{
+		"jpeg": true,
+		"jpg":  true,
+		"png":  true,
+		"webp": true,
+	}
+
 	for _, v := range files {
-		wals.InsertWals(db, v)
+		extension := v[strings.LastIndex(v, ".")+1:]
+		if extensiones_validas[extension] {
+			wals.InsertWals(db, v)
+		}
 	}
 }
 
@@ -158,11 +170,10 @@ func initErrorFiles(db *sql.DB) {
 }
 
 func create_database(database_name string) {
-	home := os.Getenv("HOME")
 	_, err := os.Open(database_name)
 	if errors.Is(err, os.ErrNotExist) {
 		fmt.Println("Database file does not exist, creating one...")
-		file, err := os.Create(home + "/.config/wallpaper-go/database.db")
+		file, err := os.Create(database_name)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -185,10 +196,10 @@ func list_files(path string) ([]string, error) {
 
 	for _, v := range files {
 		if !v.IsDir() {
-			full_path := fmt.Sprintf("%s/%s", path, v.Name())
+			full_path := filepath.Join(path, v.Name())
 			answer = append(answer, full_path)
 		} else {
-			nested_path := fmt.Sprintf("%s/%s", path, v.Name())
+			nested_path := filepath.Join(path, v.Name())
 			nested_files, err := list_files(nested_path)
 			if err != nil {
 				log.Println(err)
